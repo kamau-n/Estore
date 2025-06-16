@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { doc, getDoc, setDoc } from "firebase/firestore"
@@ -36,15 +36,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const loadCart = async () => {
       if (user) {
         // Load from Firebase for authenticated users
-        const cartDoc = await getDoc(doc(db, "carts", user.uid))
-        if (cartDoc.exists()) {
-          setItems(cartDoc.data().items || [])
+        try {
+          const cartDoc = await getDoc(doc(db, "carts", user.uid))
+          if (cartDoc.exists()) {
+            setItems(cartDoc.data().items || [])
+          }
+        } catch (error) {
+          console.error("Error loading cart from Firebase:", error)
+          // Fallback to localStorage
+          const savedCart = localStorage.getItem("cart")
+          if (savedCart) {
+            setItems(JSON.parse(savedCart))
+          }
         }
       } else {
         // Load from localStorage for guest users
         const savedCart = localStorage.getItem("cart")
         if (savedCart) {
-          setItems(JSON.parse(savedCart))
+          try {
+            setItems(JSON.parse(savedCart))
+          } catch (error) {
+            console.error("Error parsing cart from localStorage:", error)
+            setItems([])
+          }
         }
       }
     }
@@ -57,7 +71,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const saveCart = async () => {
       if (user) {
         // Save to Firebase for authenticated users
-        await setDoc(doc(db, "carts", user.uid), { items })
+        try {
+          await setDoc(doc(db, "carts", user.uid), { items })
+        } catch (error) {
+          console.error("Error saving cart to Firebase:", error)
+          // Fallback to localStorage
+          localStorage.setItem("cart", JSON.stringify(items))
+        }
       } else {
         // Save to localStorage for guest users
         localStorage.setItem("cart", JSON.stringify(items))
@@ -111,7 +131,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     itemCount,
   }
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
+  return React.createElement(CartContext.Provider, { value }, children)
 }
 
 export function useCart() {
