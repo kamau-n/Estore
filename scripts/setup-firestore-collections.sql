@@ -1,0 +1,116 @@
+-- Firestore Collections Setup Guide
+-- Since Firestore is a NoSQL database, this is a reference for the collections structure
+
+-- 1. USERS COLLECTION
+-- Collection: users
+-- Document ID: {user.uid}
+-- Fields:
+-- {
+--   uid: string,
+--   email: string,
+--   displayName: string,
+--   photoURL: string,
+--   isAdmin: boolean,
+--   createdAt: timestamp
+-- }
+
+-- 2. CATEGORIES COLLECTION  
+-- Collection: categories
+-- Document ID: auto-generated
+-- Fields:
+-- {
+--   name: string,
+--   description: string,
+--   image: string (optional),
+--   productCount: number,
+--   createdAt: timestamp,
+--   updatedAt: timestamp
+-- }
+
+-- 3. PRODUCTS COLLECTION
+-- Collection: products  
+-- Document ID: auto-generated
+-- Fields:
+-- {
+--   name: string,
+--   description: string,
+--   price: number,
+--   image: string,
+--   images: array (optional),
+--   category: string,
+--   categoryId: string,
+--   inStock: boolean,
+--   stockQuantity: number,
+--   featured: boolean,
+--   tags: array (optional),
+--   createdAt: timestamp,
+--   updatedAt: timestamp
+-- }
+
+-- 4. ORDERS COLLECTION
+-- Collection: orders
+-- Document ID: auto-generated  
+-- Fields:
+-- {
+--   userId: string,
+--   items: array,
+--   total: number,
+--   shippingInfo: object,
+--   status: string, -- pending, processing, shipped, delivered, cancelled
+--   paymentStatus: string, -- pending, paid, failed, refunded
+--   paymentReference: string,
+--   paymentData: object (optional),
+--   createdAt: timestamp,
+--   updatedAt: timestamp
+-- }
+
+-- 5. CARTS COLLECTION
+-- Collection: carts
+-- Document ID: {user.uid}
+-- Fields:
+-- {
+--   items: array,
+--   updatedAt: timestamp
+-- }
+
+-- FIRESTORE SECURITY RULES
+-- Add these rules to your Firestore Security Rules:
+
+-- rules_version = '2';
+-- service cloud.firestore {
+--   match /databases/{database}/documents {
+--     // Users can read/write their own user document
+--     match /users/{userId} {
+--       allow read, write: if request.auth != null && request.auth.uid == userId;
+--       allow read: if request.auth != null && 
+--         resource.data.isAdmin == true && 
+--         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+--     }
+--     
+--     // Categories are readable by all, writable by admins
+--     match /categories/{categoryId} {
+--       allow read: if true;
+--       allow write: if request.auth != null && 
+--         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+--     }
+--     
+--     // Products are readable by all, writable by admins
+--     match /products/{productId} {
+--       allow read: if true;
+--       allow write: if request.auth != null && 
+--         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+--     }
+--     
+--     // Orders are readable/writable by the user who created them, readable by admins
+--     match /orders/{orderId} {
+--       allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+--       allow read, write: if request.auth != null && 
+--         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+--     }
+--     
+--     // Carts are readable/writable by the user who owns them
+--     match /carts/{userId} {
+--       allow read, write: if request.auth != null && request.auth.uid == userId;
+--     }
+--   }
+-- }
