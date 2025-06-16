@@ -40,7 +40,7 @@ export const initializePaystackPayment = (data: PaystackPaymentData) => {
         key: paystackConfig.publicKey,
         email: data.email,
         amount: data.amount,
-        currency: data.currency || "NGN",
+        currency: data.currency || "KES",
         ref: data.reference || `ref_${Date.now()}`,
         callback: (response: any) => {
           resolve(response)
