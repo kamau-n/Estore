@@ -2,7 +2,7 @@
 
 import React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/components/auth-provider"
 import { doc, getDoc, setDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 

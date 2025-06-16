@@ -4,13 +4,13 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/components/auth-provider"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Save } from "lucide-react"
+import { ArrowLeft, Save, Upload, X } from "lucide-react"
 import Link from "next/link"
 import { addDoc, collection } from "firebase/firestore"
 import { db } from "@/lib/firebase"
@@ -27,6 +27,8 @@ export default function NewCategoryPage() {
     description: "",
     image: "",
   })
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -34,6 +36,45 @@ export default function NewCategoryPage() {
       ...prev,
       [name]: value,
     }))
+  }
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "Image size should be less than 5MB",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Check file type
+      if (!file.type.startsWith("image/")) {
+        toast({
+          title: "Error",
+          description: "Please select a valid image file",
+          variant: "destructive",
+        })
+        return
+      }
+
+      setImageFile(file)
+
+      // Create preview
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const removeImage = () => {
+    setImageFile(null)
+    setImagePreview(null)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,7 +104,7 @@ export default function NewCategoryPage() {
       const categoryData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        image: formData.image.trim() || null,
+        image: imagePreview || null, // Store base64 image data
         productCount: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -153,36 +194,43 @@ export default function NewCategoryPage() {
                 />
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div className="space-y-2">
-                <Label htmlFor="image">Category Image URL (Optional)</Label>
-                <Input
-                  id="image"
-                  name="image"
-                  type="url"
-                  value={formData.image}
-                  onChange={handleInputChange}
-                  placeholder="https://example.com/category-image.jpg"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Add an image URL to represent this category. Leave empty to use a default icon.
-                </p>
+                <Label htmlFor="image">Category Image</Label>
+                <div className="flex items-center gap-4">
+                  <Input id="image" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById("image")?.click()}
+                    className="flex items-center gap-2"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Upload Image
+                  </Button>
+                  <p className="text-sm text-muted-foreground">Max 5MB, JPG/PNG/GIF supported</p>
+                </div>
               </div>
 
               {/* Image Preview */}
-              {formData.image && (
+              {imagePreview && (
                 <div className="space-y-2">
                   <Label>Image Preview</Label>
                   <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
                     <img
-                      src={formData.image || "/placeholder.svg"}
+                      src={imagePreview || "/placeholder.svg"}
                       alt="Category preview"
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement
-                        target.style.display = "none"
-                      }}
                     />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-1 right-1 h-6 w-6"
+                      onClick={removeImage}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
               )}

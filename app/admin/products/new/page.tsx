@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/components/auth-provider"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Save } from "lucide-react"
+import { ArrowLeft, Save, Upload, X } from "lucide-react"
 import Link from "next/link"
 import { addDoc, collection, getDocs } from "firebase/firestore"
 import { db } from "@/lib/firebase"
@@ -41,6 +41,9 @@ export default function NewProductPage() {
     stockQuantity: "",
     featured: false,
   })
+
+  const [imageFiles, setImageFiles] = useState<File[]>([])
+  const [imagePreviews, setImagePreviews] = useState<string[]>([])
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -85,6 +88,62 @@ export default function NewProductPage() {
     }))
   }
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+
+    if (imageFiles.length + files.length > 5) {
+      toast({
+        title: "Error",
+        description: "You can upload maximum 5 images",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const validFiles: File[] = []
+    const newPreviews: string[] = []
+
+    files.forEach((file) => {
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: `${file.name} is too large. Max size is 5MB`,
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Check file type
+      if (!file.type.startsWith("image/")) {
+        toast({
+          title: "Error",
+          description: `${file.name} is not a valid image file`,
+          variant: "destructive",
+        })
+        return
+      }
+
+      validFiles.push(file)
+
+      // Create preview
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        newPreviews.push(e.target?.result as string)
+        if (newPreviews.length === validFiles.length) {
+          setImageFiles((prev) => [...prev, ...validFiles])
+          setImagePreviews((prev) => [...prev, ...newPreviews])
+        }
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const removeImage = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index))
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -126,7 +185,7 @@ export default function NewProductPage() {
         name: formData.name.trim(),
         description: formData.description.trim(),
         price: price,
-        image: formData.image.trim() || null,
+        images: imagePreviews, // Store array of base64 image data
         category: formData.category,
         categoryId: formData.categoryId,
         inStock: formData.inStock,
@@ -261,33 +320,55 @@ export default function NewProductPage() {
                 )}
               </div>
 
-              {/* Image URL */}
+              {/* Image Upload */}
               <div className="space-y-2">
-                <Label htmlFor="image">Product Image URL</Label>
-                <Input
-                  id="image"
-                  name="image"
-                  type="url"
-                  value={formData.image}
-                  onChange={handleInputChange}
-                  placeholder="https://example.com/product-image.jpg"
-                />
+                <Label htmlFor="images">Product Images (Max 5)</Label>
+                <div className="flex items-center gap-4">
+                  <Input
+                    id="images"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById("images")?.click()}
+                    className="flex items-center gap-2"
+                    disabled={imageFiles.length >= 5}
+                  >
+                    <Upload className="h-4 w-4" />
+                    Upload Images ({imageFiles.length}/5)
+                  </Button>
+                  <p className="text-sm text-muted-foreground">Max 5MB each, JPG/PNG/GIF supported</p>
+                </div>
               </div>
 
-              {/* Image Preview */}
-              {formData.image && (
+              {/* Image Previews */}
+              {imagePreviews.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Image Preview</Label>
-                  <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
-                    <img
-                      src={formData.image || "/placeholder.svg"}
-                      alt="Product preview"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement
-                        target.style.display = "none"
-                      }}
-                    />
+                  <Label>Image Previews</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative w-full h-32 border rounded-lg overflow-hidden">
+                        <img
+                          src={preview || "/placeholder.svg"}
+                          alt={`Product preview ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-1 right-1 h-6 w-6"
+                          onClick={() => removeImage(index)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

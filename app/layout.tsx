@@ -4,7 +4,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { AuthProvider } from "@/hooks/use-auth"
+import { AuthProvider } from "@/components/auth-provider"
 import { CartProvider } from "@/hooks/use-cart"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -14,7 +14,7 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "ECommerce Store",
   description: "Modern ecommerce platform with Firebase and Paystack",
-    generator: 'v0.dev'
+  generator: "v0.dev",
 }
 
 export default function RootLayout({
