@@ -112,9 +112,10 @@ export default function CheckoutPage() {
       const paymentData = {
         email: shippingInfo.email,
         amount: total * 100, // Convert to kobo
-        currency: "NGN",
+        currency: "KES",
         reference: `order_${orderId}_${Date.now()}`,
         metadata: {
+          application: "estore",
           orderId: orderId,
           userId: user.uid,
           items: items.map((item) => ({
