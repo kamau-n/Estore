@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/components/auth-provider"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -12,6 +12,10 @@ import { db } from "@/lib/firebase"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { useToast } from "@/hooks/use-toast"
 import { Switch } from "@/components/ui/switch"
+
+// Force dynamic rendering - must be at top level
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 
 interface UserData {
   id: string
