@@ -30,10 +30,10 @@ export default function SettingsPage() {
   const [storeSettings, setStoreSettings] = useState({
     storeName: "EStore",
     storeDescription: "Your one-stop shop for quality products",
-    storeEmail: "support@estore.com",
-    storePhone: "+234 123 456 7890",
-    storeAddress: "123 Commerce Street, Victoria Island, Lagos, Nigeria",
-    currency: "NGN",
+    storeEmail: "support@estore.co.ke",
+    storePhone: "+254 759 155 650",
+    storeAddress: "123 Commerce Street, Victoria Island, Nairobi, Kenya",
+    currency: "KES",
     taxRate: "7.5",
     freeShippingThreshold: "10000",
   });
@@ -357,7 +357,7 @@ export default function SettingsPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="standardShippingCost">
-                    Standard Shipping Cost (NGN)
+                    Standard Shipping Cost (KES)
                   </Label>
                   <Input
                     id="standardShippingCost"
@@ -369,7 +369,7 @@ export default function SettingsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="expressShippingCost">
-                    Express Shipping Cost (NGN)
+                    Express Shipping Cost (KES)
                   </Label>
                   <Input
                     id="expressShippingCost"

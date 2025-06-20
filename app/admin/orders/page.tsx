@@ -20,9 +20,19 @@ import {
   Truck,
   CheckCircle,
   XCircle,
+  CreditCard,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import Link from "next/link";
-import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  updateDoc,
+  doc,
+  query,
+  where,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +43,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { payment } from "@/types/paymentType";
 
 interface Order {
   id: string;
@@ -53,6 +69,7 @@ interface Order {
   paymentReference?: string;
   createdAt: string;
   updatedAt: string;
+  payments?: payment[]; // Add payments to order interface
 }
 
 export default function OrdersManagementPage() {
@@ -64,6 +81,7 @@ export default function OrdersManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
@@ -73,27 +91,46 @@ export default function OrdersManagementPage() {
   }, [user, isAdmin, authLoading, router]);
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchOrdersWithPayments = async () => {
       if (!user || !isAdmin) return;
 
       try {
+        // Fetch orders
         const ordersSnapshot = await getDocs(collection(db, "orders"));
         const ordersData = ordersSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         })) as Order[];
 
+        // Fetch all payments
+        const paymentsRef = collection(db, "payments");
+        const q = query(paymentsRef, where("product", "==", "estore"));
+        const paymentsSnapshot = await getDocs(q);
+
+        const paymentsData = paymentsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as payment[];
+
+        // Group payments by orderId and attach to orders
+        const ordersWithPayments = ordersData.map((order) => ({
+          ...order,
+          payments: paymentsData.filter(
+            (payment) => payment.orderId === order.id
+          ),
+        }));
+
         setOrders(
-          ordersData.sort(
+          ordersWithPayments.sort(
             (a, b) =>
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           )
         );
       } catch (error) {
-        console.error("Error fetching orders:", error);
+        console.error("Error fetching orders with payments:", error);
         toast({
           title: "Error",
-          description: "Failed to load orders",
+          description: "Failed to load orders and payments",
           variant: "destructive",
         });
       } finally {
@@ -101,7 +138,7 @@ export default function OrdersManagementPage() {
       }
     };
 
-    fetchOrders();
+    fetchOrdersWithPayments();
   }, [user, isAdmin, toast]);
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
@@ -134,11 +171,33 @@ export default function OrdersManagementPage() {
     }
   };
 
-  const formatPrice = (price: number) => {
+  const toggleOrderExpansion = (orderId: string) => {
+    const newExpanded = new Set(expandedOrders);
+    if (newExpanded.has(orderId)) {
+      newExpanded.delete(orderId);
+    } else {
+      newExpanded.add(orderId);
+    }
+    setExpandedOrders(newExpanded);
+  };
+
+  const formatPrice = (price: number | string) => {
+    const numPrice = typeof price === "string" ? parseFloat(price) : price;
     return new Intl.NumberFormat("en-KE", {
       style: "currency",
       currency: "KES",
-    }).format(price);
+    }).format(numPrice);
+  };
+
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === "string" ? new Date(date) : date;
+    return dateObj.toLocaleDateString("en-KE", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const getStatusIcon = (status: string) => {
@@ -172,6 +231,22 @@ export default function OrdersManagementPage() {
         return "destructive";
       default:
         return "secondary";
+    }
+  };
+
+  const getPaymentStatusVariant = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "success":
+      case "successful":
+      case "completed":
+        return "default";
+      case "pending":
+        return "secondary";
+      case "failed":
+      case "cancelled":
+        return "destructive";
+      default:
+        return "outline";
     }
   };
 
@@ -209,7 +284,9 @@ export default function OrdersManagementPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Order Management</h1>
-        <p className="text-muted-foreground">View and manage customer orders</p>
+        <p className="text-muted-foreground">
+          View and manage customer orders with payment details
+        </p>
       </div>
 
       {/* Filters */}
@@ -278,12 +355,21 @@ export default function OrdersManagementPage() {
                       {order.status}
                     </Badge>
                     <Badge variant="outline">{order.paymentStatus}</Badge>
+                    {order.payments && order.payments.length > 0 && (
+                      <Badge
+                        variant="secondary"
+                        className="flex items-center gap-1">
+                        <CreditCard className="h-3 w-3" />
+                        {order.payments.length} payment
+                        {order.payments.length > 1 ? "s" : ""}
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </CardHeader>
 
               <CardContent>
-                <div className="grid md:grid-cols-3 gap-4">
+                <div className="grid md:grid-cols-3 gap-4 mb-4">
                   <div>
                     <h4 className="font-semibold mb-2">Customer Info</h4>
                     <div className="text-sm text-muted-foreground space-y-1">
@@ -335,6 +421,84 @@ export default function OrdersManagementPage() {
                     </Button>
                   </div>
                 </div>
+
+                {/* Payment Details Section */}
+                {order.payments && order.payments.length > 0 && (
+                  <Collapsible
+                    open={expandedOrders.has(order.id)}
+                    onOpenChange={() => toggleOrderExpansion(order.id)}>
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-between p-0 h-auto">
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="h-4 w-4" />
+                          <span className="font-medium">
+                            Payment Details ({order.payments.length})
+                          </span>
+                        </div>
+                        {expandedOrders.has(order.id) ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-4">
+                      <div className="border rounded-lg p-4 bg-muted/20">
+                        <div className="space-y-4">
+                          {order.payments.map((payment, index) => (
+                            <div
+                              key={payment.id}
+                              className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-background rounded border">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <Badge
+                                    variant={getPaymentStatusVariant(
+                                      payment.status
+                                    )}>
+                                    {payment.status}
+                                  </Badge>
+                                  <span className="text-sm font-medium">
+                                    {formatPrice(payment.amount)}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-muted-foreground space-y-1">
+                                  <p>Reference: {payment.reference}</p>
+                                  <p>Channel: {payment.channel}</p>
+                                  <p>Currency: {payment.currency}</p>
+                                  {payment.paidAt && (
+                                    <p>Paid: {formatDate(payment.paidAt)}</p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-right mt-2 sm:mt-0">
+                                <div className="text-xs text-muted-foreground">
+                                  Created: {formatDate(payment.createdAt)}
+                                </div>
+                                {payment.refundedAt && (
+                                  <div className="text-xs text-destructive">
+                                    Refunded: {formatDate(payment.refundedAt)}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
+
+                {/* No Payments Message */}
+                {(!order.payments || order.payments.length === 0) && (
+                  <div className="mt-4 p-3 bg-muted/20 rounded-lg">
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <CreditCard className="h-4 w-4" />
+                      No payments recorded for this order
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

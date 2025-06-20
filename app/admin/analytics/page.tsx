@@ -164,7 +164,7 @@ export default function AnalyticsPage() {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
-      currency: "NGN",
+      currency: "KES",
     }).format(price);
   };
 
