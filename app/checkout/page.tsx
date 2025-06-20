@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { initializePaystackPayment } from "@/lib/paystack";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import Image from "next/image";
 import { ArrowLeft, CreditCard, MapPin, User } from "lucide-react";
@@ -51,7 +51,7 @@ export default function CheckoutPage() {
   }, [user, items, router]);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-NG", {
+    return new Intl.NumberFormat("en-KE", {
       style: "currency",
       currency: "KES",
     }).format(price);
@@ -108,12 +108,37 @@ export default function CheckoutPage() {
       const orderRef = await addDoc(collection(db, "orders"), orderData);
       const orderId = orderRef.id;
 
+      // create a payment first
+
+      const paymentDoc = await addDoc(collection(db, "payments"), {
+        product: "estore",
+        orderId: orderId,
+        channel: "",
+        currency: "",
+        customer: "",
+        reference: "",
+        paidAt: serverTimestamp(),
+        userId: user.uid,
+        amount: total,
+        status: "pending",
+        createdAt: serverTimestamp(),
+        refundedAt: null,
+        paymentFor: "productsOrder",
+        logs: {},
+        user: null,
+        authorization: {},
+        paymentReference: "",
+      });
+
+      console.log(paymentDoc.id);
+      let refId = paymentDoc.id;
+
       // Initialize Paystack payment
       const paymentData = {
         email: shippingInfo.email,
         amount: total * 100, // Convert to kobo
         currency: "KES",
-        reference: `order_${orderId}_${Date.now()}`,
+        reference: refId,
         metadata: {
           application: "estore",
           orderId: orderId,
@@ -154,7 +179,7 @@ export default function CheckoutPage() {
     return null;
   }
 
-  const shippingCost = total > 10000 ? 0 : 2000; // Free shipping over ₦10,000
+  const shippingCost = 0; // Free shipping over ₦10,000
   const finalTotal = total + shippingCost;
 
   return (

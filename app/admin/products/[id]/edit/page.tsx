@@ -356,7 +356,7 @@ export default function EditProductPage({ params }: EditProductPageProps) {
 
               {/* Price */}
               <div className="space-y-2">
-                <Label htmlFor="price">Price (NGN) *</Label>
+                <Label htmlFor="price">Price (KES) *</Label>
                 <Input
                   id="price"
                   name="price"

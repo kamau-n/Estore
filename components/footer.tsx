@@ -1,8 +1,16 @@
-import Link from "next/link"
-import { Package2, Facebook, Twitter, Instagram, Mail, Phone, MapPin } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
+import Link from "next/link";
+import {
+  Package2,
+  Facebook,
+  Twitter,
+  Instagram,
+  Mail,
+  Phone,
+  MapPin,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 
 export function Footer() {
   return (
@@ -16,7 +24,8 @@ export function Footer() {
               <span className="font-bold text-xl">EStore</span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              Your one-stop shop for quality products at amazing prices. We deliver excellence with every purchase.
+              Your one-stop shop for quality products at amazing prices. We
+              deliver excellence with every purchase.
             </p>
             <div className="flex space-x-2">
               <Button size="icon" variant="ghost">
@@ -35,16 +44,24 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="font-semibold">Quick Links</h3>
             <nav className="flex flex-col space-y-2">
-              <Link href="/products" className="text-sm text-muted-foreground hover:text-primary">
+              <Link
+                href="/products"
+                className="text-sm text-muted-foreground hover:text-primary">
                 Products
               </Link>
-              <Link href="/categories" className="text-sm text-muted-foreground hover:text-primary">
+              <Link
+                href="/categories"
+                className="text-sm text-muted-foreground hover:text-primary">
                 Categories
               </Link>
-              <Link href="/about" className="text-sm text-muted-foreground hover:text-primary">
+              <Link
+                href="/about"
+                className="text-sm text-muted-foreground hover:text-primary">
                 About Us
               </Link>
-              <Link href="/contact" className="text-sm text-muted-foreground hover:text-primary">
+              <Link
+                href="/contact"
+                className="text-sm text-muted-foreground hover:text-primary">
                 Contact
               </Link>
             </nav>
@@ -54,16 +71,24 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="font-semibold">Customer Service</h3>
             <nav className="flex flex-col space-y-2">
-              <Link href="/help" className="text-sm text-muted-foreground hover:text-primary">
+              <Link
+                href="/help"
+                className="text-sm text-muted-foreground hover:text-primary">
                 Help Center
               </Link>
-              <Link href="/shipping" className="text-sm text-muted-foreground hover:text-primary">
+              <Link
+                href="/shipping"
+                className="text-sm text-muted-foreground hover:text-primary">
                 Shipping Info
               </Link>
-              <Link href="/returns" className="text-sm text-muted-foreground hover:text-primary">
+              <Link
+                href="/returns"
+                className="text-sm text-muted-foreground hover:text-primary">
                 Returns
               </Link>
-              <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary">
+              <Link
+                href="/privacy"
+                className="text-sm text-muted-foreground hover:text-primary">
                 Privacy Policy
               </Link>
             </nav>
@@ -72,7 +97,9 @@ export function Footer() {
           {/* Newsletter */}
           <div className="space-y-4">
             <h3 className="font-semibold">Stay Updated</h3>
-            <p className="text-sm text-muted-foreground">Subscribe to get special offers and updates.</p>
+            <p className="text-sm text-muted-foreground">
+              Subscribe to get special offers and updates.
+            </p>
             <div className="flex space-x-2">
               <Input placeholder="Enter your email" className="flex-1" />
               <Button>Subscribe</Button>
@@ -81,15 +108,15 @@ export function Footer() {
             <div className="space-y-2 pt-4">
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                <span>support@estore.com</span>
+                <span>support@estore.kamauharriso.co.ke</span>
               </div>
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4" />
-                <span>+234 123 456 7890</span>
+                <span>+254 759 155 650</span>
               </div>
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4" />
-                <span>Lagos, Nigeria</span>
+                <span>Nairobi,Kenya</span>
               </div>
             </div>
           </div>
@@ -98,17 +125,23 @@ export function Footer() {
         <Separator className="my-8" />
 
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          <p className="text-sm text-muted-foreground">© 2024 EStore. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">
+            © 2025 EStore. All rights reserved.
+          </p>
           <div className="flex space-x-4">
-            <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary">
+            <Link
+              href="/terms"
+              className="text-sm text-muted-foreground hover:text-primary">
               Terms of Service
             </Link>
-            <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary">
+            <Link
+              href="/privacy"
+              className="text-sm text-muted-foreground hover:text-primary">
               Privacy Policy
             </Link>
           </div>
         </div>
       </div>
     </footer>
-  )
+  );
 }

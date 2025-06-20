@@ -22,6 +22,8 @@ import {
   Settings,
   BarChart3,
   TrendingUp,
+  Cog,
+  Settings2,
 } from "lucide-react";
 import Link from "next/link";
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
@@ -120,9 +122,9 @@ export default function AdminDashboard() {
   }
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-NG", {
+    return new Intl.NumberFormat("en-KE", {
       style: "currency",
-      currency: "NGN",
+      currency: "KES",
     }).format(price);
   };
 
@@ -319,6 +321,15 @@ export default function AdminDashboard() {
                   <Link href="/admin/analytics">
                     <BarChart3 className="mr-2 h-4 w-4" />
                     View Analytics
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full justify-start">
+                  <Link href="/admin/settings">
+                    <Settings2 className="mr-2 h-4 w-4" />
+                    Settings
                   </Link>
                 </Button>
               </CardContent>
