@@ -162,7 +162,8 @@ export default function CheckoutPage() {
 
       // Clear cart and redirect
       clearCart();
-      router.push(`/orders/${orderId}`);
+      // router.push(`/orders/${orderId}`);
+      router.push("/profile");
     } catch (error: any) {
       console.error("Payment error:", error);
       toast({
