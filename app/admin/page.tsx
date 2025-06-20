@@ -29,6 +29,7 @@ import Link from "next/link";
 import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { LoadingSpinner } from "@/components/loading-spinner";
+import { payment } from "@/types/paymentType";
 
 interface DashboardStats {
   totalProducts: number;
@@ -62,6 +63,20 @@ export default function AdminDashboard() {
         const totalProducts = productsSnapshot.size;
 
         // Fetch orders
+        const paymentsSnapshot = await getDocs(collection(db, "orders"));
+        const totalPayments = paymentsSnapshot.size;
+        const payments = paymentsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        // Calculate total revenue
+        const totalPaymentsRenue = payments.reduce(
+          (sum, payment) => sum + (Number(payment.amount) || 0),
+          0
+        );
+
+        // calculate Revenue
         const ordersSnapshot = await getDocs(collection(db, "orders"));
         const totalOrders = ordersSnapshot.size;
         const orders = ordersSnapshot.docs.map((doc) => ({
@@ -311,6 +326,16 @@ export default function AdminDashboard() {
                   <Link href="/admin/orders">
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     View All Orders
+                  </Link>
+                </Button>
+
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full justify-start">
+                  <Link href="/admin/payments">
+                    <ShoppingCart className="mr-2 h-4 w-4" />
+                    View Payments
                   </Link>
                 </Button>
 

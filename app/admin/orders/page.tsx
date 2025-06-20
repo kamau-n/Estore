@@ -32,6 +32,7 @@ import {
   doc,
   query,
   where,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { LoadingSpinner } from "@/components/loading-spinner";
@@ -189,8 +190,22 @@ export default function OrdersManagementPage() {
     }).format(numPrice);
   };
 
-  const formatDate = (date: Date | string) => {
-    const dateObj = typeof date === "string" ? new Date(date) : date;
+  const formatDate = (date: Date | string | Timestamp) => {
+    console.log(date);
+
+    let dateObj: Date;
+
+    if (typeof date === "string") {
+      dateObj = new Date(date);
+    } else if (date instanceof Date) {
+      dateObj = date;
+    } else if (date?.toDate) {
+      // Handles Firebase Timestamp
+      dateObj = date.toDate();
+    } else {
+      throw new Error("Invalid date format");
+    }
+
     return dateObj.toLocaleDateString("en-KE", {
       year: "numeric",
       month: "short",

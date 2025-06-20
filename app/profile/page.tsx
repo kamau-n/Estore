@@ -628,10 +628,10 @@ export default function ProfilePage() {
                                           Paid At:
                                         </span>
                                         <p className="text-muted-foreground">
-                                          {formatDistanceToNow(
+                                          {/* {formatDistanceToNow(
                                             new Date(order.paymentData.paidAt),
                                             { addSuffix: true }
-                                          )}
+                                          )} */}
                                         </p>
                                       </div>
                                     )}

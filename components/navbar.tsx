@@ -125,7 +125,7 @@ export function Navbar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/orders">
+                    <Link href="/profile">
                       <Package className="mr-2 h-4 w-4" />
                       Orders
                     </Link>
